@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Analisis Wilayah Kota Padang</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style> 
+        #map-canvas { height: calc(100vh - 64px); } 
+        /* Anti-Glitch Mouse Hover Event */
+        .leaflet-popup { pointer-events: none; } 
+    </style>
+</head>
+<body class="bg-slate-50 font-sans overflow-hidden text-slate-800">
+
+    <nav class="bg-slate-900 text-white h-16 px-6 flex justify-between items-center shadow-lg relative z-20 border-b border-slate-800">
+        <div class="flex items-center gap-3">
+            <span class="bg-slate-800 border border-slate-700 text-slate-300 px-2.5 py-1 rounded-md text-[10px] font-extrabold tracking-wider">SPATIAL</span>
+            <h1 class="text-xs md:text-sm font-bold tracking-tight text-slate-100">Analisis Urgensi Pengembangan Kecamatan Kota Padang</h1>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <a href="peringkat.html" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition duration-200 shadow-sm shadow-indigo-600/20">
+                Ranking Wilayah
+            </a>
+
+            <a href="admin.html" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold px-4 py-2 rounded-xl transition duration-200">
+                Kelola Data
+            </a>
+            
+            <div class="flex items-center gap-1.5 bg-slate-800 border border-slate-700 p-1 rounded-xl shadow-inner ml-2">
+                <input type="text" id="search-box" placeholder="Cari nama kecamatan..." 
+                       class="bg-transparent px-3 py-1 text-xs w-48 focus:outline-none text-slate-100 placeholder-slate-500 font-medium">
+                <button onclick="eksekusiPencarianSpasial()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg transition duration-200">
+                    Cari
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex flex-col md:flex-row h-[calc(100vh-64px)] w-full">
+        
+        <div class="w-full md:w-80 bg-white border-r border-slate-200 p-5 flex flex-col justify-between shadow-md z-10 overflow-y-auto">
+            <div class="space-y-6">
+                
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">1. Periode Analisis</label>
+                    <select id="select-tahun" onchange="pemicuGantiTahun(this.value)" 
+                            class="w-full bg-slate-50 border border-slate-200 text-slate-800 py-2.5 px-3.5 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 shadow-sm cursor-pointer appearance-none">
+                        </select>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">2. Kategori Indikator</label>
+                    <select id="select-aspek" onchange="pemicuGantiAspek(this.value)" 
+                            class="w-full bg-slate-50 border border-slate-200 text-slate-800 py-2.5 px-3.5 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 shadow-sm cursor-pointer appearance-none">
+                        <option value="komposit" selected>Indeks Komposit Gabungan (IUPW)</option>
+                        <option value="ekonomi">Sektoral Ekonomi (Murni UMKM)</option>
+                        <option value="sosial">Sektoral Sosial (Kepadatan Penduduk)</option>
+                        <option value="infrastruktur">Sektoral Infrastruktur (Jalan Rusak)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">3. Batas Visibilitas</label>
+                    <div class="space-y-2.5 bg-slate-50 p-3.5 rounded-xl border border-slate-100 text-xs">
+                        <label class="flex items-center justify-between font-semibold cursor-pointer group">
+                            <div class="flex items-center gap-2.5 text-slate-700">
+                                <span class="w-2.5 h-2.5 rounded-full bg-red-700 block"></span>
+                                <span>Zona Kritis (Tinggi)</span>
+                            </div>
+                            <input type="checkbox" id="check-tinggi" checked onchange="pemicuGantiCheckbox()" class="w-4 h-4 accent-indigo-600 cursor-pointer">
+                        </label>
+                        
+                        <label class="flex items-center justify-between font-semibold cursor-pointer group">
+                            <div class="flex items-center gap-2.5 text-slate-700">
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-400 block"></span>
+                                <span>Zona Waspada (Menengah)</span>
+                            </div>
+                            <input type="checkbox" id="check-menengah" checked onchange="pemicuGantiCheckbox()" class="w-4 h-4 accent-indigo-600 cursor-pointer">
+                        </label>
+                        
+                        <label class="flex items-center justify-between font-semibold cursor-pointer group">
+                            <div class="flex items-center gap-2.5 text-slate-700">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-600 block"></span>
+                                <span>Zona Stabil (Rendah)</span>
+                            </div>
+                            <input type="checkbox" id="check-rendah" checked onchange="pemicuGantiCheckbox()" class="w-4 h-4 accent-indigo-600 cursor-pointer">
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-200 pt-4 mt-4">
+                <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Derajat Urgensi Wilayah</h4>
+                <div class="space-y-2 text-xs">
+                    <div class="flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-50 transition">
+                        <div class="flex items-center gap-3">
+                            <span class="w-4 h-4 bg-gradient-to-tr from-[#800026] to-red-600 rounded-md shadow-sm"></span>
+                            <span class="font-semibold text-slate-700">Urgensi Tinggi / Kritis</span>
+                        </div>
+                        <span class="text-[10px] text-slate-400 font-bold">Skor &gt; 66</span>
+                    </div>
+                    <div class="flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-50 transition">
+                        <div class="flex items-center gap-3">
+                            <span class="w-4 h-4 bg-gradient-to-tr from-[#FEB24C] to-amber-400 rounded-md shadow-sm"></span>
+                            <span class="font-semibold text-slate-700">Urgensi Menengah / Waspada</span>
+                        </div>
+                        <span class="text-[10px] text-slate-400 font-bold">34 - 66</span>
+                    </div>
+                    <div class="flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-50 transition">
+                        <div class="flex items-center gap-3">
+                            <span class="w-4 h-4 bg-gradient-to-tr from-[#238B45] to-emerald-500 rounded-md shadow-sm"></span>
+                            <span class="font-semibold text-slate-700">Urgensi Rendah / Mandiri</span>
+                        </div>
+                        <span class="text-[10px] text-slate-400 font-bold">&lt; 34</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex-1 w-full z-0" id="map-canvas"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

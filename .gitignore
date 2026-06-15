@@ -1,0 +1,11 @@
+# Mengabaikan folder dependency backend yang sangat berat
+**/node_modules/
+/webgis-backend/node_modules/
+
+# Mengabaikan file rahasia kredensial database PostgreSQL
+**/ .env
+/webgis-backend/.env
+
+# Mengabaikan file log sistem
+*.log
+.DS_Store
