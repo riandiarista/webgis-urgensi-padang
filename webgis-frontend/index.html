@@ -8,7 +8,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
+    <script>
+    if (sessionStorage.getItem('isLoggedIn') !== 'true') {
+        window.location.href = "login.html";
+    }
+    </script>
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -44,6 +51,17 @@
                 Kelola Data
             </a>
             
+            <button onclick="pemicuLogoutSistem()" 
+                    class="flex items-center gap-2 bg-slate-800/50 hover:bg-red-600 border border-slate-700/60 hover:border-red-500 text-slate-300 hover:text-white text-xs font-bold px-4 py-2 rounded-xl transition-all duration-200 active:scale-95 shadow-sm shadow-black/10 whitespace-nowrap group">
+                
+                <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-white transition-colors duration-200" 
+                    fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                </svg>
+                
+                <span>Keluar</span>
+            </button>
+            
             <div class="flex items-center gap-1.5 bg-slate-800 border border-slate-700 p-1 rounded-xl shadow-inner ml-2">
                 <input type="text" id="search-box" placeholder="Cari nama kecamatan..." 
                        class="bg-transparent px-3 py-1 text-xs w-48 focus:outline-none text-slate-100 placeholder-slate-500 font-medium">
@@ -63,7 +81,7 @@
                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">1. Periode Analisis</label>
                     <select id="select-tahun" onchange="pemicuGantiTahun(this.value)" 
                             class="w-full bg-slate-50 border border-slate-200 text-slate-800 py-2.5 px-3.5 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 shadow-sm cursor-pointer appearance-none">
-                        </select>
+                    </select>
                 </div>
 
                 <div>

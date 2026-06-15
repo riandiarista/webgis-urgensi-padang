@@ -15,6 +15,7 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
 let layerGisKecamatan;
 let cacheDataGeoJSON = null; 
 let tahunAktif = '2024';
+let aspectosAktif = 'komposit'; // Menampung aspek aktif
 let aspekAktif = 'komposit'; 
 let showTinggi = true;
 let showMenengah = true;
@@ -105,8 +106,7 @@ function prosesRenderUlangPetaSpasial() {
                 warnaTeksAkar = "text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded";
             }
 
-            // 📸 ✨ TUNING FOTO LANDMARK & ANTARA FALLBACK ANTI-ERROR
-            // Mengubah nama kecamatan menjadi slug file (Contoh: "Koto Tangah" -> "koto-tangah.jpg")
+            // 📸 TUNING FOTO LANDMARK & ANTARA FALLBACK ANTI-ERROR
             let namaFileFoto = namaKecamatan.toLowerCase().trim().replace(/\s+/g, '-');
             let pathFotoLokal = `images/${namaFileFoto}.jpg`;
             
@@ -246,4 +246,26 @@ function muatFilterTahunDinamis() {
         .catch(error => console.error("Gagal memuat filter tahun dinamis:", error));
 }
 
+// =========================================================================
+// 🚪 LOGOUT ENGINE INTERAKTIF (SWEETALERT2 INTEGRATION)
+// =========================================================================
+function pemicuLogoutSistem() {
+    Swal.fire({
+        title: "Keluar dari Sistem?",
+        text: "Anda akan mengakhiri sesi dasbor eksekutif perencana wilayah ini.",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#b91c1c", 
+        cancelButtonColor: "#64748b",  
+        confirmButtonText: "Ya, Logout",
+        cancelButtonText: "Batal"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            sessionStorage.clear();
+            window.location.href = "login.html";
+        }
+    });
+}
+
+// Inisialisasi awal aplikasi
 muatFilterTahunDinamis();

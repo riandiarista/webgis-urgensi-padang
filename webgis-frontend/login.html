@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Otentikasi Eksekutif - WebGIS Padang</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Desain Tekstur Grid Peta Spasial pada Sisi Kiri */
+        .spatial-mesh {
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans min-h-screen flex items-stretch text-slate-800">
+
+    <div class="hidden lg:flex w-1/2 bg-gradient-to-br from-indigo-700 via-indigo-600 to-indigo-900 p-12 flex-col justify-between relative overflow-hidden text-white spatial-mesh">
+        
+        <div class="absolute w-80 h-80 bg-white/10 rounded-full blur-3xl top-10 left-10 pointer-events-none"></div>
+
+        <div class="z-10 flex items-center gap-2">
+            <span class="bg-white/20 border border-white/20 text-white px-2.5 py-0.5 rounded text-[10px] font-black tracking-wider uppercase">Portal Keamanan</span>
+            <span class="text-xs font-semibold text-indigo-200">Bappeda Kota Padang</span>
+        </div>
+
+        <div class="z-10 my-auto space-y-6 max-w-sm relative">
+            <div class="bg-white text-slate-800 p-4 rounded-xl shadow-xl transform -rotate-2 hover:rotate-0 transition duration-300 border border-slate-100">
+                <div class="flex justify-between items-center border-b pb-2 mb-2">
+                    <div>
+                        <h4 class="font-bold text-xs text-slate-900">Infrastruktur Platform</h4>
+                        <p class="text-[10px] text-slate-400 font-medium">Konektivitas Basis Data</p>
+                    </div>
+                    <span class="bg-emerald-50 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded">ONLINE</span>
+                </div>
+                <div class="space-y-1 text-[11px] font-medium text-slate-500">
+                    <p class="flex justify-between"><span>🗄️ PostgreSQL Server:</span> <b class="text-slate-700">Terhubung</b></p>
+                    <p class="flex justify-between"><span>🌍 PostGIS Extension:</span> <b class="text-slate-700">Aktif (Spatially Enabled)</b></p>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 text-white p-4 rounded-xl shadow-2xl transform translate-x-12 rotate-3 hover:rotate-0 transition duration-300 border border-slate-800">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-2">
+                    <h4 class="font-bold text-xs">Proteksi Lapisan Rute</h4>
+                    <span class="w-2 h-2 bg-indigo-500 rounded-full animate-ping"></span>
+                </div>
+                <p class="text-[10.5px] font-medium text-slate-400 leading-relaxed">
+                    Sistem ini mendeteksi otentikasi secara *real-time*. Segala bentuk percobaan bypass URL tanpa token enkripsi sesi yang valid akan ditolak otomatis.
+                </p>
+            </div>
+
+            <div class="pt-8 text-left">
+                <h1 class="text-2xl font-black tracking-tight leading-tight">Analisis Urgensi <br>Pembangunan Wilayah</h1>
+                <p class="text-xs text-indigo-200 font-medium mt-2 leading-relaxed">
+                    Sistem Informasi Geografis internal Pemko Padang untuk mendukung perumusan kebijakan taktis secara objektif berbasis data spasial.
+                </p>
+            </div>
+        </div>
+
+        <p class="text-[10px] text-indigo-300/80 font-medium z-10">&copy; 2026 Pemerintah Kota Padang. All Rights Reserved.</p>
+    </div>
+
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-8 bg-slate-50 relative">
+        
+        <div class="w-full max-w-sm">
+            <div class="mb-8">
+                <h2 class="text-2xl font-black text-slate-950 tracking-tight">Selamat Datang Kembali!</h2>
+                <p class="text-xs text-slate-400 font-medium mt-1">Silakan masukkan akun otoritas perencana untuk masuk.</p>
+            </div>
+
+            <form onsubmit="eksekusiLoginSistem(event)" class="space-y-4">
+                
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Nama Pengguna (Username)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 text-xs pointer-events-none">👤</span>
+                        <input type="text" id="login-username" required placeholder="admin asli"
+                               class="w-full bg-white border border-slate-200 text-slate-800 pl-9 pr-4 py-2.5 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 shadow-sm transition placeholder-slate-300">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Kata Sandi (Password)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 text-xs pointer-events-none">🔒</span>
+                        
+                        <input type="password" id="login-password" required placeholder="••••••••"
+                               class="w-full bg-white border border-slate-200 text-slate-800 pl-9 pr-10 py-2.5 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 shadow-sm transition placeholder-slate-300">
+                        
+                        <button type="button" onclick="pemicuToggleVisibilitasSandi()" 
+                                class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-indigo-600 transition-colors duration-200 focus:outline-none active:scale-90 transform origin-center">
+                            
+                            <svg id="icon-mata-buka" class="w-4 h-4 transition-all duration-300 scale-100 opacity-100" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+
+                            <svg id="icon-mata-tutup" class="w-4 h-4 hidden transition-all duration-300 scale-50 opacity-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 11-4.243-4.243m4.242 4.242L9.88 9.88" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" 
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-3 rounded-xl transition duration-200 shadow-md shadow-indigo-600/10 mt-6 flex items-center justify-center gap-2">
+                    Masuk ke Sistem Dasbor
+                </button>
+            </form>
+
+            <div class="mt-12 text-center text-[10px] font-semibold text-slate-400 border-t pt-4 border-slate-200/60 flex justify-between">
+                <span>Enkripsi Sesi: <b class="text-indigo-600 font-bold">SessionStorage Guard</b></span>
+                <span>v2.1.0</span>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function pemicuToggleVisibilitasSandi() {
+            const inputSandi = document.getElementById('login-password');
+            const ikonBuka = document.getElementById('icon-mata-buka');
+            const ikonTutup = document.getElementById('icon-mata-tutup');
+
+            if (inputSandi.type === 'password') {
+                inputSandi.type = 'text';
+                ikonBuka.classList.add('scale-50', 'opacity-0');
+                setTimeout(() => {
+                    ikonBuka.classList.add('hidden');
+                    ikonTutup.classList.remove('hidden');
+                    setTimeout(() => {
+                        ikonTutup.classList.remove('scale-50', 'opacity-0');
+                        ikonTutup.classList.add('scale-100', 'opacity-100');
+                    }, 20);
+                }, 150);
+            } else {
+                inputSandi.type = 'password';
+                ikonTutup.classList.add('scale-50', 'opacity-0');
+                setTimeout(() => {
+                    ikonTutup.classList.add('hidden');
+                    ikonBuka.classList.remove('hidden');
+                    setTimeout(() => {
+                        ikonBuka.classList.remove('scale-50', 'opacity-0');
+                        ikonBuka.classList.add('scale-100', 'opacity-100');
+                    }, 20);
+                }, 150);
+            }
+        }
+
+        function eksekusiLoginSistem(event) {
+            event.preventDefault();
+            
+            const usernameInput = document.getElementById('login-username').value.trim();
+            const passwordInput = document.getElementById('login-password').value;
+
+            // 🔄 UPDATE: Validasi string kredensial baru kelompok kalian
+            if (usernameInput === "admin asli" && passwordInput === "adminasli123") {
+                sessionStorage.setItem('isLoggedIn', 'true');
+                sessionStorage.setItem('userRole', 'Bappeda Admin');
+
+                Swal.fire({
+                    title: "Akses Diberikan!",
+                    text: "Sesi otentikasi tervalidasi. Memuat data spasial kota...",
+                    icon: "success",
+                    confirmButtonColor: "#4f46e5",
+                    timer: 1300,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = "index.html"; 
+                });
+            } else {
+                Swal.fire({
+                    title: "Akses Ditolak!",
+                    text: "Kombinasi nama pengguna atau kata sandi tidak valid.",
+                    icon: "error",
+                    confirmButtonColor: "#b91c1c"
+                });
+            }
+        }
+    </script>
+</body>
+</html>
