@@ -1,20 +1,26 @@
-const URL_API = "http://localhost:3000/api/urgensi-padang";
+// =========================================================================
+// 📡 CONFIGURATION & TUNNELING GLOBAL VARIABLES (NGROK LIVE API)
+// =========================================================================
+const URL_API = "https://sermon-upward-sheet.ngrok-free.dev/api/urgensi-padang";
 let arrayMasterRanking = [];
 let dataSedangDitampilkan = []; 
 let tahunAktif = "2024";
 let kolomSortAktif = "skor_komposit"; 
 let arahSortAsc = false;              
 
+// 1. Ambil data spasial-atribut berkala berdasarkan filter tahun aktif
 function ambilDataRanking() {
     fetch(`${URL_API}?tahun=${tahunAktif}`)
         .then(res => res.json())
         .then(geojson => {
+            // Mapping fitur properties GeoJSON menjadi array objek flat untuk mempermudah manipulasi tabel
             arrayMasterRanking = geojson.features.map(f => f.properties);
             prosesSortDanRenderTabel();
         })
         .catch(err => console.error("Gagal memuat data matriks peringkat:", err));
 }
 
+// 2. Engine Pemroses Pengurutan (Sorting) Data Sebelum Dikirim ke Dom HTML
 function prosesSortDanRenderTabel() {
     let dataHasilSort = [...arrayMasterRanking];
 
@@ -30,22 +36,25 @@ function prosesSortDanRenderTabel() {
     perbaruiIconUrutan();
     renderHTMLTabel(dataHasilSort);
     
-    // ✨ BARU: Pemicu pembuatan Rekomendasi Instansi Pemerintah Kota
+    // 🧠 AUTOMATED BAPPEDA STRATEGIC ADVISORY LOGIC ENGINE (RULE-BASED)
     generasiInsightDanRekomendasiBappeda(dataHasilSort);
 }
 
+// 🎨 Helper Component: Penolak Glitch Visual Badge Warna Skor Urgensi
 function pasangBadgeSkor(skor) {
     if (skor > 66) return `<span class="bg-red-50 text-red-700 font-extrabold px-2.5 py-1 rounded-lg text-[11px] border border-red-100">${skor}</span>`;
     if (skor > 33) return `<span class="bg-amber-50 text-amber-700 font-extrabold px-2.5 py-1 rounded-lg text-[11px] border border-amber-100">${skor}</span>`;
     return `<span class="bg-emerald-50 text-emerald-700 font-extrabold px-2.5 py-1 rounded-lg text-[11px] border border-emerald-100">${skor}</span>`;
 }
 
+// 3. Render Komponen Baris Pasukan Tabel Prioritas Pembangunan
 function renderHTMLTabel(data) {
     const wadahTabel = document.getElementById('tabel-body-ranking');
     if (!wadahTabel) return;
     wadahTabel.innerHTML = "";
 
     data.forEach((row, index) => {
+        // Pembuatan badge medali peringkat eksekutif top 3 prioritas
         let badgeRank = `<span class="text-slate-400 font-bold">${index + 1}</span>`;
         if (index === 0) badgeRank = `<span class="bg-red-700 text-white text-[11px] font-extrabold w-6 h-6 rounded-full flex items-center justify-center mx-auto shadow-sm">1</span>`;
         if (index === 1) badgeRank = `<span class="bg-amber-500 text-white text-[11px] font-extrabold w-6 h-6 rounded-full flex items-center justify-center mx-auto shadow-sm">2</span>`;
@@ -65,14 +74,13 @@ function renderHTMLTabel(data) {
 }
 
 // =========================================================================
-// 🧠 ✨ AUTOMATED BAPPEDA STRATEGIC ADVISORY LOGIC ENGINE (RULE-BASED)
+// 🧠 AUTOMATED BAPPEDA STRATEGIC ADVISORY LOGIC ENGINE (RULE-BASED)
 // =========================================================================
 function generasiInsightDanRekomendasiBappeda(data) {
     const wadahPanel = document.getElementById('panel-rekomendasi');
     if (!wadahPanel || data.length === 0) return;
 
     // A. Cari Kecamatan Prioritas Tertinggi Kontekstual Berdasarkan data teratas IUPW
-    // Mencari kecamatan dengan skor komposit paling besar (Urutan 1)
     const dataUrutanTeratas = [...data].sort((a, b) => b.skor_komposit - a.skor_komposit);
     const kecamatanUtamaKritis = dataUrutanTeratas[0];
 
@@ -98,7 +106,7 @@ function generasiInsightDanRekomendasiBappeda(data) {
 
     // D. Render HTML Template Komponen Dashboard Rekomendasi
     wadahPanel.innerHTML = `
-        <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex flex-col justify-between">
+        <div class="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm flex flex-col justify-between">
             <div>
                 <span class="text-[10px] font-black text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded uppercase tracking-wider">Wawasan Makro</span>
                 <h3 class="text-sm font-bold text-slate-900 mt-2.5 mb-2">Ringkasan Beban Wilayah</h3>
@@ -107,11 +115,11 @@ function generasiInsightDanRekomendasiBappeda(data) {
                 </p>
             </div>
             <div class="mt-4 pt-3 border-t border-slate-100 text-[11px] font-semibold text-slate-400">
-                Fokus Utama Peta: <span class="text-slate-700">${jumlahKritisMerah + jumlahWaspadaKuning} Kawasan Prioritas</span>
+                Fokus Utama Peta: <span class="text-slate-700 font-bold">${jumlahKritisMerah + jumlahWaspadaKuning} Kawasan Prioritas</span>
             </div>
         </div>
 
-        <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex flex-col justify-between">
+        <div class="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm flex flex-col justify-between">
             <div>
                 <span class="text-[10px] font-black text-red-600 bg-red-50 border border-red-100 px-2 py-0.5 rounded uppercase tracking-wider">Lokasi Prioritas 1</span>
                 <h3 class="text-sm font-bold text-slate-900 mt-2.5 mb-2">Intervensi Utama Kota</h3>
@@ -124,7 +132,7 @@ function generasiInsightDanRekomendasiBappeda(data) {
             </div>
         </div>
 
-        <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex flex-col justify-between md:col-span-1">
+        <div class="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm flex flex-col justify-between md:col-span-1">
             <div class="space-y-3">
                 <span class="text-[10px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded uppercase tracking-wider">Delegasi Rencana Aksi</span>
                 <h3 class="text-sm font-bold text-slate-900 mt-1">Saran Distribusi Kerja Dinas</h3>
@@ -132,13 +140,13 @@ function generasiInsightDanRekomendasiBappeda(data) {
                 <div class="text-[11px] space-y-2">
                     <div class="p-2 bg-slate-50 border border-slate-100 rounded-xl">
                         <b class="text-slate-800 font-bold block mb-0.5">🏗️ Dinas PUPR Padang:</b>
-                        <span class="text-slate-500 leading-tight block">${daftarDinasPUPR.length > 0 ? daftarDinasPUPR.join(', ') : 'Tidak ada rekomendasi proyek fisik.'}</span>
-                        <span class="text-[9.5px] text-indigo-600 font-semibold block mt-1">Aksi: Pengaspalan ulang & normalisasi drainase.</span>
+                        <span class="text-slate-500 leading-tight block font-semibold">${daftarDinasPUPR.length > 0 ? daftarDinasPUPR.join(', ') : 'Tidak ada rekomendasi proyek fisik.'}</span>
+                        <span class="text-[9.5px] text-indigo-600 font-bold block mt-1">Aksi: Pengaspalan ulang & normalisasi drainase.</span>
                     </div>
                     <div class="p-2 bg-slate-50 border border-slate-100 rounded-xl">
                         <b class="text-slate-800 font-bold block mb-0.5">🏪 Dinas Koperasi & UMKM:</b>
-                        <span class="text-slate-500 leading-tight block">${daftarDinasUMKM.length > 0 ? daftarDinasUMKM.join(', ') : 'Tidak ada intervensi ekonomi.'}</span>
-                        <span class="text-[9.5px] text-indigo-600 font-semibold block mt-1">Aksi: Stimulus modal & inkubasi digital.</span>
+                        <span class="text-slate-500 leading-tight block font-semibold">${daftarDinasUMKM.length > 0 ? daftarDinasUMKM.join(', ') : 'Tidak ada intervensi ekonomi.'}</span>
+                        <span class="text-[9.5px] text-indigo-600 font-bold block mt-1">Aksi: Stimulus modal & inkubasi digital.</span>
                     </div>
                 </div>
             </div>
@@ -147,7 +155,7 @@ function generasiInsightDanRekomendasiBappeda(data) {
 }
 
 // =========================================================================
-// 📥 ENGINES EKSPOR MULTI-FORMAT
+// 📥 ENGINES EKSPOR MULTI-FORMAT (EXCEL, CSV, WORD, PDF)
 // =========================================================================
 function pemicuEksporMultiFormat() {
     const formatDipilih = document.getElementById('select-format-ekspor').value;
@@ -169,6 +177,7 @@ function eksporKeExcel() {
     eksekusiUnduhBlob(templateExcel, 'application/vnd.ms-excel', namaFile);
 }
 
+// ... (Logika Ekspor CSV, Word, dan PDF dijaga 100% utuh sesuai blueprint berkas lama)
 function eksporKeCSV() {
     let isiCsv = "Peringkat,Nama Kecamatan,Skor Urgensi Ekonomi (UMKM),Skor Urgensi Sosial (Penduduk),Skor Urgensi Infrastruktur (Jalan),Skor Komposit Gabungan (IUPW)\n";
     dataSedangDitampilkan.forEach((row, index) => {
@@ -242,8 +251,12 @@ function perbaruiIconUrutan() {
     });
 }
 
+// =========================================================================
+// 🔄 DYNAMIC FILTER INITIALIZER (REAL-TIME NGROK INTEGRATION)
+// =========================================================================
 function muatFilterTahunRankingDinamis() {
-    fetch('http://localhost:3000/api/tahun-tersedia')
+    // 🔄 UPDATE: Mengarahkan fetch list tahun ke alamat HTTPS Ngrok aman
+    fetch('https://sermon-upward-sheet.ngrok-free.dev/api/tahun-tersedia')
         .then(response => response.json())
         .then(daftarTahun => {
             const selectElement = document.getElementById('select-tahun-ranking');
@@ -264,4 +277,5 @@ function muatFilterTahunRankingDinamis() {
         .catch(err => console.error("Gagal memuat filter tahun ranking dinamis:", err));
 }
 
+// Inisialisasi awal penarikan data peringkat
 muatFilterTahunRankingDinamis();

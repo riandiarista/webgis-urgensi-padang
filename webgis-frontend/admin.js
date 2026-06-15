@@ -1,4 +1,4 @@
-const URL_API = "http://localhost:3000/api/perkembangan";
+const URL_API = "https://sermon-upward-sheet.ngrok-free.dev/api/perkembangan";
 let modeForm = "tambah"; 
 
 // State Global untuk Manajemen Sinkronisasi Searching & Sorting

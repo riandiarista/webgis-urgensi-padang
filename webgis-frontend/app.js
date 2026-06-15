@@ -53,7 +53,7 @@ function setGayaPoligon(feature) {
 // 🚀 RENDERING & DATA FETCHING ENGINE (AJAX)
 // =========================================================================
 function muatDataWebGis() {
-    fetch(`http://localhost:3000/api/urgensi-padang?tahun=${tahunAktif}`)
+    fetch(`https://sermon-upward-sheet.ngrok-free.dev/api/urgensi-padang?tahun=${tahunAktif}`)
         .then(response => response.json())
         .then(geojsonResource => {
             cacheDataGeoJSON = geojsonResource; 
