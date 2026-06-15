@@ -1,7 +1,7 @@
 const URL_API = "http://localhost:3000/api/perkembangan";
 let modeForm = "tambah"; 
 
-// BARU: State Global untuk Manajemen Sinkronisasi Searching & Sorting
+// State Global untuk Manajemen Sinkronisasi Searching & Sorting
 let arrayMasterAdmin = []; 
 let kolomSortAktif = "";   
 let arahSortAsc = true;    
@@ -17,12 +17,12 @@ function ambilDataTabelAdmin() {
         .catch(err => console.error("Gagal menarik data atribut:", err));
 }
 
-// BARU: Fungsi Utama Pemroses Filter Kata Kunci & Arah Pengurutan Kolom
+// Fungsi Utama Pemroses Filter Kata Kunci & Arah Pengurutan Kolom
 function filterDanSortDataEksekutif() {
     const kataKunci = document.getElementById('search-admin').value.toLowerCase().trim();
     let dataHasilProses = [...arrayMasterAdmin]; // Duplikasi array master agar data asli tetap terjaga
 
-    // A. ENGINE FITUR SEARCHING (Menyaring nama kecamatan atau tahun secara parsial)
+    // A. ENGINE FITUR SEARCHING
     if (kataKunci !== "") {
         dataHasilProses = dataHasilProses.filter(row => {
             return row.nama_kecamatan.toLowerCase().includes(kataKunci) || 
@@ -30,31 +30,25 @@ function filterDanSortDataEksekutif() {
         });
     }
 
-    // B. ENGINE FITUR SORTING (Mengurutkan berdasarkan tipe data huruf atau angka)
+    // B. ENGINE FITUR SORTING
     if (kolomSortAktif !== "") {
         dataHasilProses.sort((a, b) => {
             let nilaiA = a[kolomSortAktif];
             let nilaiB = b[kolomSortAktif];
 
-            // Jika mengurutkan teks (Nama Kecamatan)
             if (typeof nilaiA === 'string') {
                 return arahSortAsc ? nilaiA.localeCompare(nilaiB) : nilaiB.localeCompare(nilaiA);
-            } 
-            // Jika mengurutkan angka (Tahun, UMKM, Kepadatan, Jalan)
-            else {
+            } else {
                 return arahSortAsc ? nilaiA - nilaiB : nilaiB - nilaiA;
             }
         });
     }
 
-    // Perbarui indikator visual tanda panah (icon) di header tabel
     perbaruiIndikatorIconSort();
-    
-    // Kirim data hasil filter & sort ke fungsi render tampilan tabel HTML
     renderBarisTabelHTML(dataHasilProses);
 }
 
-// BARU: Fungsi Khusus untuk Menggambar/Merender Ulang Baris Tabel
+// Fungsi Khusus untuk Menggambar/Merender Ulang Baris Tabel
 function renderBarisTabelHTML(data) {
     const wadahTabel = document.getElementById('tabel-body-admin');
     wadahTabel.innerHTML = ""; 
@@ -85,23 +79,20 @@ function renderBarisTabelHTML(data) {
     });
 }
 
-// BARU: Pemicu Aksi Input Kotak Pencarian
 function pemicuCariAdmin() {
     filterDanSortDataEksekutif();
 }
 
-// BARU: Pemicu Klik Judul Kolom (Header) Tabel untuk Mengaktifkan Sortir
 function pemicuSortAdmin(kolom) {
     if (kolomSortAktif === kolom) {
-        arahSortAsc = !arahSortAsc; // Balik arah sortir jika kolom yang sama diklik ulang
+        arahSortAsc = !arahSortAsc;
     } else {
-        kolomSortAktif = kolom; // Aktifkan kolom sortir baru
-        arahSortAsc = true;    // Set default awal ke terkecil (Ascending)
+        kolomSortAktif = kolom;
+        arahSortAsc = true;
     }
     filterDanSortDataEksekutif();
 }
 
-// BARU: Merender Indikator Tanda Panah Naik/Turun pada Header Kolom aktif
 function perbaruiIndikatorIconSort() {
     const semuaKolom = ['nama_kecamatan', 'tahun', 'jumlah_umkm', 'kepadatan_penduduk', 'persen_jalan_rusak'];
     semuaKolom.forEach(k => {
@@ -154,7 +145,7 @@ function tutupModalForm() {
     document.getElementById('modal-crud').classList.add('hidden');
 }
 
-// 4. Proses Simpan Data (Menangani Method POST dan PUT dengan Animasi Pop-up Premium)
+// 4. Proses Simpan Data (POST & PUT) dengan Deteksi Duplikasi Cerdas
 function simpanDataForm(event) {
     event.preventDefault();
 
@@ -169,8 +160,28 @@ function simpanDataForm(event) {
     let metodeHttp = "POST";
 
     if (modeForm === "tambah") {
-        bodyData.kecamatan_id = parseInt(document.getElementById('form-kecamatan').value);
-        bodyData.tahun = parseInt(document.getElementById('form-tahun').value);
+        const selectKecamatan = document.getElementById('form-kecamatan');
+        const namaKecamatanPilihan = selectKecamatan.options[selectKecamatan.selectedIndex].text.replace("Kec. ", "").trim().toLowerCase();
+        const tahunPilihan = parseInt(document.getElementById('form-tahun').value);
+
+        // 🔥 STRATEGIC GUARD: Validasi Duplikasi di Sisi Klien Sebelum Hit Server
+        const adakahDuplikat = arrayMasterAdmin.some(row => 
+            row.nama_kecamatan.toLowerCase().trim() === namaKecamatanPilihan && 
+            parseInt(row.tahun) === tahunPilihan
+        );
+
+        if (adakahDuplikat) {
+            Swal.fire({
+                title: "Duplikasi Data Terdeteksi!",
+                text: `Log indikator untuk Kecamatan ${selectKecamatan.options[selectKecamatan.selectedIndex].text} pada tahun ${tahunPilihan} sudah terekam di database. Silakan gunakan opsi 'Edit' pada tabel jika ingin mengubah nilai indikatornya.`,
+                icon: "warning",
+                confirmButtonColor: "#4f46e5"
+            });
+            return; // Menghentikan eksekusi, operasi POST ke backend dibatalkan!
+        }
+
+        bodyData.kecamatan_id = parseInt(selectKecamatan.value);
+        bodyData.tahun = tahunPilihan;
     } else {
         urlTarget = `${URL_API}/${id}`;
         metodeHttp = "PUT";
@@ -184,19 +195,16 @@ function simpanDataForm(event) {
     .then(res => res.json())
     .then(resData => {
         tutupModalForm();
-        
-        // ✨ PERBAIKAN: Mengganti alert() simpan data dengan SweetAlert2 Success Card
         Swal.fire({
             title: "Aksi Berhasil!",
             text: resData.message || "Data indikator BPS kecamatan telah sukses diperbarui.",
             icon: "success",
             confirmButtonColor: "#4f46e5"
         }).then(() => {
-            ambilDataTabelAdmin(); // Memuat ulang isi baris tabel grid
+            ambilDataTabelAdmin(); 
         });
     })
     .catch(err => {
-        // ✨ PERBAIKAN: Mengganti alert() error simpan dengan SweetAlert2 Error Card
         Swal.fire({
             title: "Gagal Menyimpan!",
             text: "Terjadi gangguan koneksi sistem saat mencoba mengamankan data.",
@@ -206,38 +214,34 @@ function simpanDataForm(event) {
     });
 }
 
-// 5. Eksekusi Penghapusan Data Rekaman (Kotak Dialog Konfirmasi Interaktif)
+// 5. Eksekusi Penghapusan Data Rekaman
 function eksekusiHapusData(id) {
-    // ✨ PERBAIKAN: Mengganti confirm() lama dengan Dialog Konfirmasi SweetAlert2 Dua Tombol
     Swal.fire({
         title: "Apakah Anda Yakin?",
         text: "Data rekam berkala ini akan dihapus permanen dari basis data PostgreSQL!",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: "#b91c1c", // Merah untuk aksi hapus
-        cancelButtonColor: "#64748b",  // Slate gray untuk batal
+        confirmButtonColor: "#b91c1c", 
+        cancelButtonColor: "#64748b",  
         confirmButtonText: "Ya, Hapus Data!",
         cancelButtonText: "Batal"
     }).then((result) => {
-        // Jika user memantapkan pilihan untuk menghapus data rekam target
         if (result.isConfirmed) {
             fetch(`${URL_API}/${id}`, { method: "DELETE" })
                 .then(res => res.json())
                 .then(resData => {
-                    // ✨ PERBAIKAN: Mengganti alert() berhasil hapus lama dengan SweetAlert2
                     Swal.fire({
                         title: "Terhapus!",
                         text: resData.message || "Data sukses dibersihkan dari sistem.",
                         icon: "success",
                         confirmButtonColor: "#4f46e5"
                     });
-                    ambilDataTabelAdmin(); // Sinkronisasi ulang render tabel grid admin
+                    ambilDataTabelAdmin(); 
                 })
                 .catch(err => {
-                    // ✨ PERBAIKAN: Mengganti alert() gagal hapus lama dengan SweetAlert2
                     Swal.fire({
                         title: "Gagal Menghapus!",
-                        text: "Gagal mengeksekusi perintah hapus akibat kendala restu server backend.",
+                        text: "Gagal mengeksekusi perintah hapus akibat kendala server backend.",
                         icon: "error",
                         confirmButtonColor: "#b91c1c"
                     });
