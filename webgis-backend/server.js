@@ -4,15 +4,27 @@ const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
+
+// 🌟 MIDDLEWARE AMAN: Mengizinkan Vercel dan Live Server mengakses pipa data tanpa kendala CORS
 app.use(cors());
 app.use(express.json());
 
+// Konfigurasi koneksi Pool Basis Data PostgreSQL via Environment Variables (.env)
 const pool = new Pool({
     user: process.env.DB_USER,
     host: process.env.DB_HOST,
     database: process.env.DB_NAME,
     password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT,
+});
+
+// Test Koneksi Awal ke PostgreSQL saat server dinyalakan
+pool.connect((err, client, release) => {
+    if (err) {
+        return console.error('🔴 Gagal menyambungkan koneksi ke PostgreSQL:', err.stack);
+    }
+    console.log('🟢 Pipa koneksi Driver Basis Data PostgreSQL berhasil diaktifkan.');
+    release();
 });
 
 // =========================================================================
@@ -108,10 +120,24 @@ app.get('/api/perkembangan', async (req, res) => {
     }
 });
 
-// 2. [CREATE] Menambahkan rekam data indikator BPS baru per tahun
+// 2. [CREATE] Menambahkan rekam data indikator BPS baru per tahun (Dengan Server Guard)
 app.post('/api/perkembangan', async (req, res) => {
     const { kecamatan_id, tahun, jumlah_umkm, kepadatan_penduduk, persen_jalan_rusak } = req.body;
     try {
+        // 🔥 SERVER-SIDE ANTI-DUPLICATION GUARD
+        // Memeriksa relasi silang di database apakah kombinasi kecamatan dan tahun tersebut sudah ada
+        const cekDuplikat = await pool.query(
+            "SELECT id FROM perkembangan_tahunan WHERE kecamatan_id = $1 AND tahun = $2",
+            [kecamatan_id, tahun]
+        );
+
+        if (cekDuplikat.rows.length > 0) {
+            return res.status(400).json({ 
+                error: true,
+                message: `Data indikator untuk ID kecamatan ${kecamatan_id} pada tahun ${tahun} sudah terekam di sistem!` 
+            });
+        }
+
         const query = `
             INSERT INTO perkembangan_tahunan (kecamatan_id, tahun, jumlah_umkm, kepadatan_penduduk, persen_jalan_rusak)
             VALUES ($1, $2, $3, $4, $5) RETURNING *;
@@ -176,4 +202,4 @@ app.get('/api/tahun-tersedia', async (req, res) => {
 // 🚀 RUNNING PORT SERVER
 // =========================================================================
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server Backend WebGIS Kelompok 3 menyala di port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server Backend WebGIS Kelompok 3 menyala aman di port ${PORT}`));

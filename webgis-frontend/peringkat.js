@@ -10,7 +10,10 @@ let arahSortAsc = false;
 
 // 1. Ambil data spasial-atribut berkala berdasarkan filter tahun aktif
 function ambilDataRanking() {
-    fetch(`${URL_API}?tahun=${tahunAktif}`)
+    // 🌟 REVISI: Menambahkan Header untuk bypass Ngrok Landing Page Warning
+    fetch(`${URL_API}?tahun=${tahunAktif}`, {
+        headers: { 'ngrok-skip-browser-warning': 'true' }
+    })
         .then(res => res.json())
         .then(geojson => {
             // Mapping fitur properties GeoJSON menjadi array objek flat untuk mempermudah manipulasi tabel
@@ -177,7 +180,6 @@ function eksporKeExcel() {
     eksekusiUnduhBlob(templateExcel, 'application/vnd.ms-excel', namaFile);
 }
 
-// ... (Logika Ekspor CSV, Word, dan PDF dijaga 100% utuh sesuai blueprint berkas lama)
 function eksporKeCSV() {
     let isiCsv = "Peringkat,Nama Kecamatan,Skor Urgensi Ekonomi (UMKM),Skor Urgensi Sosial (Penduduk),Skor Urgensi Infrastruktur (Jalan),Skor Komposit Gabungan (IUPW)\n";
     dataSedangDitampilkan.forEach((row, index) => {
@@ -255,8 +257,10 @@ function perbaruiIconUrutan() {
 // 🔄 DYNAMIC FILTER INITIALIZER (REAL-TIME NGROK INTEGRATION)
 // =========================================================================
 function muatFilterTahunRankingDinamis() {
-    // 🔄 UPDATE: Mengarahkan fetch list tahun ke alamat HTTPS Ngrok aman
-    fetch('https://sermon-upward-sheet.ngrok-free.dev/api/tahun-tersedia')
+    // 🌟 REVISI: Mengarahkan fetch list tahun ke alamat HTTPS Ngrok aman dengan bypass header
+    fetch('https://sermon-upward-sheet.ngrok-free.dev/api/tahun-tersedia', {
+        headers: { 'ngrok-skip-browser-warning': 'true' }
+    })
         .then(response => response.json())
         .then(daftarTahun => {
             const selectElement = document.getElementById('select-tahun-ranking');

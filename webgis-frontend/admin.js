@@ -8,7 +8,10 @@ let arahSortAsc = true;
 
 // 1. Ambil data awal dari database dan simpan ke variabel penampung global
 function ambilDataTabelAdmin() {
-    fetch(URL_API)
+    // 🌟 REVISI: Menambahkan Header Bypass Ngrok Browser Peringatan (GET)
+    fetch(URL_API, {
+        headers: { 'ngrok-skip-browser-warning': 'true' }
+    })
         .then(res => res.json())
         .then(data => {
             arrayMasterAdmin = data; // Simpan data asli murni dari database
@@ -177,7 +180,7 @@ function simpanDataForm(event) {
                 icon: "warning",
                 confirmButtonColor: "#4f46e5"
             });
-            return; // Menghentikan eksekusi, operasi POST ke backend dibatalkan!
+            return; 
         }
 
         bodyData.kecamatan_id = parseInt(selectKecamatan.value);
@@ -187,9 +190,13 @@ function simpanDataForm(event) {
         metodeHttp = "PUT";
     }
 
+    // 🌟 REVISI: Satukan header JSON dengan bypass header Ngrok (POST/PUT)
     fetch(urlTarget, {
         method: metodeHttp,
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+            "Content-Type": "application/json",
+            "ngrok-skip-browser-warning": "true"
+        },
         body: JSON.stringify(bodyData)
     })
     .then(res => res.json())
@@ -227,7 +234,11 @@ function eksekusiHapusData(id) {
         cancelButtonText: "Batal"
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch(`${URL_API}/${id}`, { method: "DELETE" })
+            // 🌟 REVISI: Menambahkan Header Bypass Ngrok Browser Peringatan (DELETE)
+            fetch(`${URL_API}/${id}`, { 
+                method: "DELETE",
+                headers: { 'ngrok-skip-browser-warning': 'true' }
+            })
                 .then(res => res.json())
                 .then(resData => {
                     Swal.fire({

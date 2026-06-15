@@ -15,7 +15,6 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
 let layerGisKecamatan;
 let cacheDataGeoJSON = null; 
 let tahunAktif = '2024';
-let aspectosAktif = 'komposit'; // Menampung aspek aktif
 let aspekAktif = 'komposit'; 
 let showTinggi = true;
 let showMenengah = true;
@@ -53,7 +52,10 @@ function setGayaPoligon(feature) {
 // 🚀 RENDERING & DATA FETCHING ENGINE (AJAX)
 // =========================================================================
 function muatDataWebGis() {
-    fetch(`https://sermon-upward-sheet.ngrok-free.dev/api/urgensi-padang?tahun=${tahunAktif}`)
+    // 🌟 REVISI: Ditambahkan Header Rahasia bypass Ngrok Browser Warning
+    fetch(`https://sermon-upward-sheet.ngrok-free.dev/api/urgensi-padang?tahun=${tahunAktif}`, {
+        headers: { 'ngrok-skip-browser-warning': 'true' }
+    })
         .then(response => response.json())
         .then(geojsonResource => {
             cacheDataGeoJSON = geojsonResource; 
@@ -180,6 +182,7 @@ function pemicuGantiTahun(tahunBaru) {
     muatDataWebGis(); 
 }
 
+// Fixed minor typo dari aspectosAktif ke aspekAktif
 function pemicuGantiAspek(aspekBaru) {
     aspekAktif = aspekBaru; 
     prosesRenderUlangPetaSpasial(); 
@@ -225,7 +228,10 @@ function eksekusiPencarianSpasial() {
 // 🔄 DYNAMIC FILTER INITIALIZER (REAL-TIME POSTGIS INTEGRATION)
 // =========================================================================
 function muatFilterTahunDinamis() {
-    fetch('http://localhost:3000/api/tahun-tersedia')
+    // 🌟 REVISI: Dialihkan ke Live HTTPS Ngrok dan ditambahkan Header Bypass Warning
+    fetch('https://sermon-upward-sheet.ngrok-free.dev/api/tahun-tersedia', {
+        headers: { 'ngrok-skip-browser-warning': 'true' }
+    })
         .then(response => response.json())
         .then(daftarTahun => {
             const selectElement = document.getElementById('select-tahun');
