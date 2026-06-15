@@ -3,117 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Kontrol Admin - WebGIS Padang</title>
+    <title>Panel Manajemen Atribut - WebGIS Padang</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <script>
     if (sessionStorage.getItem('isLoggedIn') !== 'true') {
         window.location.href = "login.html";
     }
     </script>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        .leaflet-popup-close-button { display: none; }
-    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
 </head>
-<body class="bg-slate-50 font-sans text-slate-800">
+<body class="bg-slate-50 font-sans text-slate-800 min-h-screen flex flex-col">
 
-    <header class="bg-slate-900 text-white h-16 px-8 flex justify-between items-center shadow-md">
+    <nav class="bg-slate-900 text-white h-16 px-6 flex justify-between items-center shadow-lg relative z-20 border-b border-slate-800">
         <div class="flex items-center gap-3">
-            <span class="bg-amber-500 text-slate-950 px-2 py-0.5 rounded text-xs font-black">ADMIN LAYER</span>
-            <h1 class="text-sm font-bold tracking-wide">Basis Data Atribut Perkembangan Kota Padang</h1>
+            <span class="bg-slate-800 border border-slate-700 text-slate-300 px-2.5 py-1 rounded-md text-[10px] font-extrabold tracking-wider">MANAGEMENT</span>
+            <h1 class="text-xs md:text-sm font-bold tracking-tight text-slate-100">Basis Data Atribut Sektoral BPS Kota Padang</h1>
         </div>
-        <a href="index.html" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold px-4 py-2 rounded-lg transition duration-200">
-            ◀ Kembali ke Peta Spasial
-        </a>
-    </header>
+        
+        <div class="flex items-center gap-3">
+            <a href="index.html" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition duration-200 shadow-sm shadow-indigo-600/20">
+                🗺️ Lihat Peta Spasial
+            </a>
 
-    <main class="max-w-6xl mx-auto my-8 px-4">
-        <div class="flex flex-col md:flex-row gap-4 justify-between items-md-center mb-6">
-            <div>
-                <h2 class="text-xl font-black text-slate-900">Manajemen Atribut Temporal</h2>
-                <p class="text-xs text-slate-400">Tambah, ubah, atau hapus indikator berskala BPS per tahun di sini.</p>
+            <a href="peringkat.html" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold px-4 py-2 rounded-xl transition duration-200">
+                Ranking Wilayah
+            </a>
+            
+            <button onclick="pemicuLogoutSistem()" 
+                    class="flex items-center gap-2 bg-slate-800/50 hover:bg-red-600 border border-slate-700/60 hover:border-red-500 text-slate-300 hover:text-white text-xs font-bold px-4 py-2 rounded-xl transition-all duration-200 active:scale-95 shadow-sm shadow-black/10 whitespace-nowrap group">
+                <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-white transition-colors duration-200" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                </svg>
+                <span>Keluar</span>
+            </button>
+        </div>
+    </nav>
+
+    <main class="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
+        
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+                <button onclick="bukaFormTambah()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition duration-200 flex items-center gap-1.5 shadow-md shadow-indigo-600/10 whitespace-nowrap">
+                    ➕ Tambah Rekam Data
+                </button>
+                
+                <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 p-1 rounded-xl shadow-inner w-full sm:w-64">
+                    <input type="text" id="search-admin" oninput="pemicuCariAdmin()" placeholder="Filter kecamatan / tahun..." 
+                           class="bg-transparent px-3 py-1.5 text-xs w-full focus:outline-none text-slate-800 font-semibold placeholder-slate-400">
+                </div>
             </div>
             
-            <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-                <div class="relative w-full sm:w-64 bg-white border border-slate-200 px-3 py-2 rounded-xl shadow-sm flex items-center">
-                    <span class="text-slate-400 mr-2 text-xs">🔍</span>
-                    <input type="text" id="search-admin" oninput="pemicuCariAdmin()" placeholder="Cari kecamatan atau tahun..." 
-                           class="w-full bg-transparent text-xs focus:outline-none text-slate-800 font-medium">
-                </div>
-                
-                <button onclick="bukaFormTambah()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition duration-200 shadow-md shadow-indigo-600/10 whitespace-nowrap">
-                    + Tambah Rekam Data Baru
-                </button>
+            <div class="text-right hidden sm:block">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Koneksi Mesin</span>
+                <span class="text-xs font-bold text-emerald-600 flex items-center gap-1 mt-0.5 justify-end">
+                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></span> PostgreSQL Active
+                </span>
             </div>
         </div>
 
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-slate-100 border-b border-slate-200 text-slate-600 text-[11px] uppercase font-bold tracking-wider select-none">
-                        <th class="py-4 px-6 cursor-pointer hover:bg-slate-200/70 transition" onclick="pemicuSortAdmin('nama_kecamatan')">Nama Kecamatan <span id="sort-icon-nama_kecamatan">⇅</span></th>
-                        <th class="py-4 px-6 cursor-pointer hover:bg-slate-200/70 transition text-center" onclick="pemicuSortAdmin('tahun')">Tahun <span id="sort-icon-tahun">⇅</span></th>
-                        <th class="py-4 px-6 cursor-pointer hover:bg-slate-200/70 transition" onclick="pemicuSortAdmin('jumlah_umkm')">Jumlah UMKM (Unit) <span id="sort-icon-jumlah_umkm">⇅</span></th>
-                        <th class="py-4 px-6 cursor-pointer hover:bg-slate-200/70 transition" onclick="pemicuSortAdmin('kepadatan_penduduk')">Kepadatan (Jiwa/km²) <span id="sort-icon-kepadatan_penduduk">⇅</span></th>
-                        <th class="py-4 px-6 cursor-pointer hover:bg-slate-200/70 transition" onclick="pemicuSortAdmin('persen_jalan_rusak')">% Jalan Rusak <span id="sort-icon-persen_jalan_rusak">⇅</span></th>
-                        <th class="py-4 px-6 text-center">Aksi Manajemen</th>
-                    </tr>
-                </thead>
-                <tbody id="tabel-body-admin" class="text-xs divide-y divide-slate-100 font-medium text-slate-700">
-                    </tbody>
-            </table>
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200">
+                            <th onclick="pemicuSortAdmin('nama_kecamatan')" class="py-4 px-6 cursor-pointer hover:bg-slate-100/50 transition">Nama Kecamatan <span id="sort-icon-nama_kecamatan" class="text-slate-300 ml-1">⇅</span></th>
+                            <th onclick="pemicuSortAdmin('tahun')" class="py-4 px-6 text-center cursor-pointer hover:bg-slate-100/50 transition">Tahun <span id="sort-icon-tahun" class="text-slate-300 ml-1">⇅</span></th>
+                            <th onclick="pemicuSortAdmin('jumlah_umkm')" class="py-4 px-6 cursor-pointer hover:bg-slate-100/50 transition">Data Usaha UMKM <span id="sort-icon-jumlah_umkm" class="text-slate-300 ml-1">⇅</span></th>
+                            <th onclick="pemicuSortAdmin('kepadatan_penduduk')" class="py-4 px-6 cursor-pointer hover:bg-slate-100/50 transition">Kepadatan Jiwa <span id="sort-icon-kepadatan_penduduk" class="text-slate-300 ml-1">⇅</span></th>
+                            <th onclick="pemicuSortAdmin('persen_jalan_rusak')" class="py-4 px-6 cursor-pointer hover:bg-slate-100/50 transition">Rasio Jalan Rusak <span id="sort-icon-persen_jalan_rusak" class="text-slate-300 ml-1">⇅</span></th>
+                            <th class="py-4 px-6 text-center w-40">Aksi Modifikasi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabel-body-admin" class="text-xs font-medium divide-y divide-slate-100">
+                        </tbody>
+                </table>
+            </div>
         </div>
     </main>
 
-    <div id="modal-crud" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex justify-center items-center">
-        <div class="bg-white w-full max-w-md p-6 rounded-2xl border border-slate-200 shadow-2xl">
-            <h3 id="modal-title" class="text-base font-black text-slate-900 mb-4">Form Isian Data</h3>
+    <div id="modal-crud" class="hidden fixed inset-0 bg-slate-950/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-md p-6 rounded-2xl shadow-2xl border border-slate-200/60 transform transition-all">
+            <h3 id="modal-title" class="text-sm font-black text-slate-900 border-b pb-3 mb-4">➕ Tambah Rekam Indikator BPS</h3>
             
-            <form id="form-isi-data" onsubmit="simpanDataForm(event)" class="space-y-4">
+            <form onsubmit="simpanDataForm(event)" class="space-y-4">
                 <input type="hidden" id="form-id-data">
 
                 <div id="container-select-kecamatan">
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Target Kecamatan</label>
-                    <select id="form-kecamatan" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-xs focus:outline-none focus:border-indigo-500">
-                        <option value="1">Kuranji</option>
-                        <option value="2">Lubuk Kilangan</option>
-                        <option value="3">Pauh</option>
-                        <option value="4">Padang Selatan</option>
-                        <option value="5">Padang Timur</option>
-                        <option value="6">Bungus Teluk Kabung</option>
-                        <option value="7">Lubuk Begalung</option>
-                        <option value="8">Padang Barat</option>
-                        <option value="9">Padang Utara</option>
-                        <option value="10">Nanggalo</option>
-                        <option value="11">Koto Tangah</option>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Pilih Target Wilayah</label>
+                    <select id="form-kecamatan" class="w-full bg-slate-50 border border-slate-200 text-slate-800 p-2.5 rounded-xl text-xs font-bold focus:outline-none">
+                        <option value="1">Kec. Koto Tangah</option>
+                        <option value="2">Kec. Kuranji</option>
+                        <option value="3">Kec. Padang Barat</option>
+                        <option value="4">Kec. Padang Timur</option>
+                        <option value="5">Kec. Padang Utara</option>
+                        <option value="6">Kec. Padang Selatan</option>
+                        <option value="7">Kec. Nanggalo</option>
+                        <option value="8">Kec. Pauh</option>
+                        <option value="9">Kec. Lubuk Kilangan</option>
+                        <option value="10">Kec. Lubuk Begalung</option>
+                        <option value="11">Kec. Bungus Teluk Kabung</option>
                     </select>
                 </div>
 
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Tahun Analisis</label>
-                    <input type="number" id="form-tahun" required placeholder="Contoh: 2025" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-xs focus:outline-none focus:border-indigo-500">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Jumlah Industri UMKM (Unit)</label>
-                    <input type="number" id="form-umkm" required placeholder="Contoh: 4500" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-xs focus:outline-none focus:border-indigo-500">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Kepadatan Penduduk (Jiwa/km²)</label>
-                    <input type="number" id="form-kepadatan" required placeholder="Contoh: 2500" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-xs focus:outline-none focus:border-indigo-500">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Rasio Jalan Rusak (Desimal BPS)</label>
-                    <input type="number" step="0.01" id="form-jalan" required placeholder="Contoh jika 25% tulis: 0.25" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-xs focus:outline-none focus:border-indigo-500">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Tahun Analisis</label>
+                        <input type="number" id="form-tahun" placeholder="Contoh: 2026" class="w-full bg-slate-50 border border-slate-200 text-slate-800 p-2.5 rounded-xl text-xs font-bold focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Jumlah UMKM (Unit)</label>
+                        <input type="number" id="form-umkm" placeholder="0" class="w-full bg-slate-50 border border-slate-200 text-slate-800 p-2.5 rounded-xl text-xs font-bold focus:outline-none">
+                    </div>
                 </div>
 
-                <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                    <button type="button" onclick="tutupModalForm()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold px-4 py-2.5 rounded-xl transition">Batal</button>
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition">Simpan Data</button>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Kepadatan (jw/km²)</label>
+                        <input type="number" id="form-kepadatan" placeholder="0" class="w-full bg-slate-50 border border-slate-200 text-slate-800 p-2.5 rounded-xl text-xs font-bold focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Rasio Jalan Rusak (0 - 1)</label>
+                        <input type="number" step="0.01" min="0" max="1" id="form-jalan" placeholder="Contoh: 0.25" class="w-full bg-slate-50 border border-slate-200 text-slate-800 p-2.5 rounded-xl text-xs font-bold focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-4 border-t mt-4">
+                    <button type="button" onclick="tutupModalForm()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold px-4 py-2 rounded-xl transition duration-150">Batal</button>
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition duration-150 shadow-md shadow-indigo-600/10">Simpan Log Atribut</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script src="admin.js"></script>
+    <script>
+        function pemicuLogoutSistem() {
+            Swal.fire({
+                title: "Keluar dari Sistem?",
+                text: "Anda akan mengakhiri sesi dasbor eksekutif perencana wilayah ini.",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonColor: "#b91c1c", 
+                cancelButtonColor: "#64748b",  
+                confirmButtonText: "Ya, Logout",
+                cancelButtonText: "Batal"
+            }).then((result) => { if (result.isConfirmed) { sessionStorage.clear(); window.location.href = "login.html"; } });
+        }
+    </script>
 </body>
 </html>
