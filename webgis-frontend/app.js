@@ -53,7 +53,7 @@ function setGayaPoligon(feature) {
 // =========================================================================
 function muatDataWebGis() {
     // 🌟 REVISI: Ditambahkan Header Rahasia bypass Ngrok Browser Warning
-    fetch(`https://sermon-upward-sheet.ngrok-free.dev/api/urgensi-padang?tahun=${tahunAktif}`, {
+    fetch(`https://webgis-urgensi-padang-backend.onrender.com/api/urgensi-padang?tahun=${tahunAktif}`, {
         headers: { 'ngrok-skip-browser-warning': 'true' }
     })
         .then(response => response.json())
@@ -229,7 +229,7 @@ function eksekusiPencarianSpasial() {
 // =========================================================================
 function muatFilterTahunDinamis() {
     // 🌟 REVISI: Dialihkan ke Live HTTPS Ngrok dan ditambahkan Header Bypass Warning
-    fetch('https://sermon-upward-sheet.ngrok-free.dev/api/tahun-tersedia', {
+    fetch('https://webgis-urgensi-padang-backend.onrender.com/api/tahun-tersedia', {
         headers: { 'ngrok-skip-browser-warning': 'true' }
     })
         .then(response => response.json())

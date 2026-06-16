@@ -1,7 +1,7 @@
 // =========================================================================
 // 📡 CONFIGURATION & TUNNELING GLOBAL VARIABLES (NGROK LIVE API)
 // =========================================================================
-const URL_API = "https://sermon-upward-sheet.ngrok-free.dev/api/urgensi-padang";
+const URL_API = "https://webgis-urgensi-padang-backend.onrender.com/api/urgensi-padang";
 let arrayMasterRanking = [];
 let dataSedangDitampilkan = []; 
 let tahunAktif = "2024";
@@ -258,7 +258,7 @@ function perbaruiIconUrutan() {
 // =========================================================================
 function muatFilterTahunRankingDinamis() {
     // 🌟 REVISI: Mengarahkan fetch list tahun ke alamat HTTPS Ngrok aman dengan bypass header
-    fetch('https://sermon-upward-sheet.ngrok-free.dev/api/tahun-tersedia', {
+    fetch('https://webgis-urgensi-padang-backend.onrender.com/api/tahun-tersedia', {
         headers: { 'ngrok-skip-browser-warning': 'true' }
     })
         .then(response => response.json())

@@ -1,4 +1,4 @@
-const URL_API = "https://sermon-upward-sheet.ngrok-free.dev/api/perkembangan";
+const URL_API = "https://webgis-urgensi-padang-backend.onrender.com/api/perkembangan";
 let modeForm = "tambah"; 
 
 // State Global untuk Manajemen Sinkronisasi Searching & Sorting
