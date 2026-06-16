@@ -16,15 +16,40 @@ const pool = new Pool({
     database: process.env.DB_NAME,
     password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT,
+    // 🔐 AKTIFKAN ENKRIPSI SSL UNTUK KONEKSI NEON CLOUD
+    ssl: {
+        rejectUnauthorized: false
+    }
 });
 
-// Test Koneksi Awal ke PostgreSQL saat server dinyalakan
-pool.connect((err, client, release) => {
+// Test Koneksi Awal ke PostgreSQL dengan Robot Audit Otomatis
+pool.connect(async (err, client, release) => {
     if (err) {
         return console.error('🔴 Gagal menyambungkan koneksi ke PostgreSQL:', err.stack);
     }
     console.log('🟢 Pipa koneksi Driver Basis Data PostgreSQL berhasil diaktifkan.');
-    release();
+    
+    try {
+        // 🔍 ROBOT AUDIT INTERNAL
+        const dbInfo = await client.query('SELECT current_database(), current_user');
+        const tableInfo = await client.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
+        
+        console.log('\n=========== 📊 ROBOT AUDIT DATABASE NEON ===========');
+        console.log(`🏠 Nama DB Terbaca : ${dbInfo.rows[0].current_database}`);
+        console.log(`👤 User Terbaca    : ${dbInfo.rows[0].current_user}`);
+        console.log('📋 Daftar Tabel yang Berhasil Dilihat Node.js:');
+        
+        if (tableInfo.rows.length === 0) {
+            console.log('   ⚠️ (ZONK! Tidak ada tabel sama sekali di database ini)');
+        } else {
+            tableInfo.rows.forEach(t => console.log(`   - ${t.table_name}`));
+        }
+        console.log('====================================================\n');
+    } catch (auditErr) {
+        console.error('⚠️ Gagal menjalankan robot audit:', auditErr.message);
+    } finally {
+        release();
+    }
 });
 
 // =========================================================================
@@ -32,13 +57,15 @@ pool.connect((err, client, release) => {
 // =========================================================================
 app.get('/api/urgensi-padang', async (req, res) => {
     try {
-        const tahunDipilih = req.query.tahun || 2024;
+        // 🛠️ FIX 1: Paksa konversi tahun dari string URL menjadi Integer murni agar klop dengan DB
+        const tahunDipilih = parseInt(req.query.tahun || 2024, 10);
 
+        // 🛠️ FIX 2: Menambahkan skema 'public.' pada fungsi spasial ST_AsGeoJSON
         const querySql = `
             SELECT k.id, k.kecamatan, pt.jumlah_umkm, pt.kepadatan_penduduk, pt.persen_jalan_rusak,
-            ST_AsGeoJSON(k.geom)::json AS geometry
-            FROM kecamatan_padang k
-            JOIN perkembangan_tahunan pt ON k.id = pt.kecamatan_id
+            public.ST_AsGeoJSON(k.geom)::json AS geometry
+            FROM public.kecamatan_padang k
+            JOIN public.perkembangan_tahunan pt ON k.id = pt.kecamatan_id
             WHERE pt.tahun = $1;
         `;
         
@@ -109,8 +136,8 @@ app.get('/api/perkembangan', async (req, res) => {
     try {
         const query = `
             SELECT pt.id, k.kecamatan AS nama_kecamatan, pt.kecamatan_id, pt.tahun, pt.jumlah_umkm, pt.kepadatan_penduduk, pt.persen_jalan_rusak
-            FROM perkembangan_tahunan pt
-            JOIN kecamatan_padang k ON pt.kecamatan_id = k.id
+            FROM public.perkembangan_tahunan pt
+            JOIN public.kecamatan_padang k ON pt.kecamatan_id = k.id
             ORDER BY pt.tahun DESC, k.kecamatan ASC;
         `;
         const result = await pool.query(query);
@@ -125,9 +152,8 @@ app.post('/api/perkembangan', async (req, res) => {
     const { kecamatan_id, tahun, jumlah_umkm, kepadatan_penduduk, persen_jalan_rusak } = req.body;
     try {
         // 🔥 SERVER-SIDE ANTI-DUPLICATION GUARD
-        // Memeriksa relasi silang di database apakah kombinasi kecamatan dan tahun tersebut sudah ada
         const cekDuplikat = await pool.query(
-            "SELECT id FROM perkembangan_tahunan WHERE kecamatan_id = $1 AND tahun = $2",
+            "SELECT id FROM public.perkembangan_tahunan WHERE kecamatan_id = $1 AND tahun = $2",
             [kecamatan_id, tahun]
         );
 
@@ -139,7 +165,7 @@ app.post('/api/perkembangan', async (req, res) => {
         }
 
         const query = `
-            INSERT INTO perkembangan_tahunan (kecamatan_id, tahun, jumlah_umkm, kepadatan_penduduk, persen_jalan_rusak)
+            INSERT INTO public.perkembangan_tahunan (kecamatan_id, tahun, jumlah_umkm, kepadatan_penduduk, persen_jalan_rusak)
             VALUES ($1, $2, $3, $4, $5) RETURNING *;
         `;
         const result = await pool.query(query, [kecamatan_id, tahun, jumlah_umkm, kepadatan_penduduk, persen_jalan_rusak]);
@@ -155,7 +181,7 @@ app.put('/api/perkembangan/:id', async (req, res) => {
     const { jumlah_umkm, kepadatan_penduduk, persen_jalan_rusak } = req.body;
     try {
         const query = `
-            UPDATE perkembangan_tahunan
+            UPDATE public.perkembangan_tahunan
             SET jumlah_umkm = $1, kepadatan_penduduk = $2, persen_jalan_rusak = $3
             WHERE id = $4 RETURNING *;
         `;
@@ -174,7 +200,7 @@ app.put('/api/perkembangan/:id', async (req, res) => {
 app.delete('/api/perkembangan/:id', async (req, res) => {
     const { id } = req.params;
     try {
-        const query = "DELETE FROM perkembangan_tahunan WHERE id = $1 RETURNING *;";
+        const query = "DELETE FROM public.perkembangan_tahunan WHERE id = $1 RETURNING *;";
         const result = await pool.query(query, [id]);
         
         if (result.rows.length === 0) {
@@ -189,7 +215,7 @@ app.delete('/api/perkembangan/:id', async (req, res) => {
 // 5. [READ DISTINCT YEARS] Mengambil daftar tahun unik yang tersedia di database secara dinamis
 app.get('/api/tahun-tersedia', async (req, res) => {
     try {
-        const query = "SELECT DISTINCT tahun FROM perkembangan_tahunan ORDER BY tahun DESC;";
+        const query = "SELECT DISTINCT tahun FROM public.perkembangan_tahunan ORDER BY tahun DESC;";
         const result = await pool.query(query);
         const daftarTahun = result.rows.map(row => row.tahun);
         res.json(daftarTahun);
